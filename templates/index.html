@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LinkFlow — URL Shortener</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="page">
+    <div class="card">
+
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-name">LinkFlow</div>
+          <div class="brand-tag">URL Shortener</div>
+        </div>
+      </div>
+
+      <!-- Heading -->
+      <h1>Shorten any link.<br>Monetize every click.</h1>
+      <p class="sub">Generate a short link with built-in ad monetization and token verification.</p>
+
+      <!-- Form -->
+      <div class="field">
+        <label>Destination URL</label>
+        <input type="url" id="url" placeholder="https://example.com/your-long-url" autocomplete="off" />
+      </div>
+
+      <div class="field">
+        <label>Custom Short ID <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+        <input type="text" id="custom_id" placeholder="my-custom-link" autocomplete="off" maxlength="32" />
+      </div>
+
+      <div id="error" class="alert alert-danger" style="display:none"></div>
+
+      <button class="btn btn-primary" id="createBtn" onclick="createLink()">
+        <span id="btnText">⚡ Generate Short Link</span>
+      </button>
+
+      <!-- Result -->
+      <div id="result" style="display:none; margin-top:1.5rem">
+        <hr class="divider">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.75rem">
+          <span class="badge badge-success">✓ Created</span>
+        </div>
+        <div class="result-box">
+          <span class="result-url" id="shortUrl"></span>
+          <button class="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+        <div class="info-row">
+          <span class="info-key">original</span>
+          <span class="info-val mono" id="origUrl" style="font-size:0.75rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        </div>
+        <div class="info-row">
+          <span class="info-key">stats</span>
+          <a id="statsLink" href="#" style="color:var(--accent);font-size:0.82rem">View analytics →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="margin-top:1.5rem;font-size:0.75rem;color:var(--muted)">
+      Links are permanent • Tokens expire in 5 min
+    </p>
+  </div>
+
+  <script>
+    async function createLink() {
+      const url       = document.getElementById('url').value.trim();
+      const customId  = document.getElementById('custom_id').value.trim();
+      const errEl     = document.getElementById('error');
+      const btn       = document.getElementById('createBtn');
+      const btnText   = document.getElementById('btnText');
+
+      errEl.style.display = 'none';
+      if (!url) { showError('Please enter a URL'); return; }
+
+      btn.disabled = true;
+      btnText.textContent = 'Generating…';
+
+      try {
+        const res  = await fetch('/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, custom_id: customId || undefined })
+        });
+        const data = await res.json();
+
+        if (!res.ok) { showError(data.error || 'Something went wrong'); return; }
+
+        document.getElementById('shortUrl').textContent  = data.short_url;
+        document.getElementById('origUrl').textContent   = data.original_url;
+        document.getElementById('statsLink').href        = `/stats/${data.short_id}`;
+        document.getElementById('result').style.display  = 'block';
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+
+      } catch (e) {
+        showError('Network error. Is the server running?');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = '⚡ Generate Short Link';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function copyLink() {
+      const url = document.getElementById('shortUrl').textContent;
+      navigator.clipboard.writeText(url).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    }
+
+    // Allow Enter key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') createLink();
+    });
+  </script>
+</body>
+</html>

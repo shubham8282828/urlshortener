@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redirecting…</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .pulse {
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.4; }
+    }
+    .redirect-steps {
+      display: flex; flex-direction: column; gap: 8px;
+      margin: 1.5rem 0;
+    }
+    .rstep {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.85rem; color: var(--muted);
+      font-family: var(--font-mono);
+      transition: color 0.3s;
+    }
+    .rstep.active  { color: var(--accent); }
+    .rstep.done    { color: var(--success); }
+    .rstep-icon    { font-size: 1rem; width: 20px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <!--
+    ──────────────────────────────────────────────────────
+    AD INTEGRATION — STEP 1: PopAds Popunder
+    ──────────────────────────────────────────────────────
+    Replace the placeholder below with your PopAds script.
+    The popunder fires as the page loads, opening a new
+    background tab with the ad without disrupting the user.
+
+    Example PopAds script (replace with your own):
+    <script data-cfasync="false" src="//cdn.popads.net/pop.js"
+       data-popads-key="YOUR_KEY_HERE"><\/script>
+  -->
+  {{ popads_script | safe }}
+
+  <div class="page">
+    <div class="card" style="text-align:center">
+
+      <div class="brand" style="justify-content:center">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-name">LinkFlow</div>
+        </div>
+      </div>
+
+      <div class="spinner"></div>
+
+      <h2 class="pulse">Preparing your link…</h2>
+      <p class="sub" style="margin-top:0.5rem">
+        Please wait while we verify and redirect you safely.
+      </p>
+
+      <!-- Visual step tracker -->
+      <div class="redirect-steps" id="stepList">
+        <div class="rstep" id="rs1">
+          <span class="rstep-icon">⟳</span>
+          <span>Verifying link integrity</span>
+        </div>
+        <div class="rstep" id="rs2">
+          <span class="rstep-icon">○</span>
+          <span>Loading content gateway</span>
+        </div>
+        <div class="rstep" id="rs3">
+          <span class="rstep-icon">○</span>
+          <span>Almost ready…</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const SHORT_ID     = {{ short_id | tojson }};
+    const ADSTERRA_URL = {{ adsterra_url | tojson }};
+
+    // ── Animate step indicators ──────────────────────
+    function setStep(n, state) {
+      const el   = document.getElementById('rs' + n);
+      const icon = el.querySelector('.rstep-icon');
+      el.className = 'rstep ' + state;
+      icon.textContent = state === 'done' ? '✓' : state === 'active' ? '▶' : '○';
+    }
+
+    // ── Flow ─────────────────────────────────────────
+    // Step 1 active immediately
+    setStep(1, 'active');
+
+    setTimeout(() => {
+      setStep(1, 'done');
+      setStep(2, 'active');
+
+      /*
+        ──────────────────────────────────────────────
+        AD INTEGRATION — STEP 2: Adsterra Direct Link
+        ──────────────────────────────────────────────
+        The user is briefly redirected to your Adsterra
+        direct link, then immediately bounced back to the
+        timer page via the return URL.
+
+        Replace ADSTERRA_URL in your .env with your real
+        Adsterra direct link, e.g.:
+        https://www.effectivegateway.com/?key=YOUR_KEY
+
+        The ad platform handles the redirect back via its
+        own postback / return URL mechanism, OR you can
+        use a timed redirect here as shown below.
+      */
+
+      // Open Adsterra in same tab briefly, then redirect to timer
+      // Simple approach: redirect user → adsterra opens their ad
+      // then we use window.location after a brief delay to resume.
+
+      // Method A — replace current tab (recommended for mobile):
+      window.location.href = ADSTERRA_URL;
+
+    }, 900);
+
+    // After 2.5 sec total, navigate to timer page
+    // (This fires even if Adsterra redirect happens,
+    //  since some ad networks bounce back automatically)
+    setTimeout(() => {
+      setStep(2, 'done');
+      setStep(3, 'active');
+      window.location.href = '/step/timer/' + SHORT_ID;
+    }, 2500);
+  </script>
+</body>
+</html>

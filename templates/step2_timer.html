@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Almost There — LinkFlow</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="page">
+    <div class="card">
+
+      <!-- Brand -->
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div><div class="brand-name">LinkFlow</div></div>
+      </div>
+
+      <!-- Step dots -->
+      <div class="steps">
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+
+      <h2>One moment, please</h2>
+      <p class="sub">Your link is being secured. Continue in a few seconds.</p>
+
+      <!-- Progress bar -->
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar" style="width:100%"></div>
+      </div>
+
+      <!-- Countdown number -->
+      <div class="countdown-display">
+        <div class="countdown-number" id="countNum">{{ countdown }}</div>
+        <div class="countdown-label">seconds remaining</div>
+      </div>
+
+      <!-- Info badge -->
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <span class="badge badge-info">🔒 Securing your access token</span>
+      </div>
+
+      <!-- Continue button — disabled until countdown ends -->
+      <button class="btn btn-primary" id="continueBtn" disabled onclick="continueFlow()">
+        <span id="btnText">⏳ Please wait…</span>
+      </button>
+
+      <p style="text-align:center;font-size:0.75rem;color:var(--muted);margin-top:1rem">
+        This step helps us verify you are human and generate your secure access token.
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+    const SHORT_ID  = {{ short_id | tojson }};
+    const MONETAG   = {{ monetag_url | tojson }};
+    const TOTAL_SEC = {{ countdown }};
+
+    let remaining = TOTAL_SEC;
+    const numEl  = document.getElementById('countNum');
+    const barEl  = document.getElementById('progressBar');
+    const btnEl  = document.getElementById('continueBtn');
+    const txtEl  = document.getElementById('btnText');
+
+    const tick = setInterval(() => {
+      remaining -= 1;
+      numEl.textContent = remaining;
+      barEl.style.width = ((remaining / TOTAL_SEC) * 100) + '%';
+
+      if (remaining <= 0) {
+        clearInterval(tick);
+        barEl.style.width = '0%';
+        numEl.textContent = '0';
+        btnEl.disabled = false;
+        txtEl.textContent = '→ Continue to Verify';
+        btnEl.classList.add('btn-success');
+        btnEl.classList.remove('btn-primary');
+      }
+    }, 1000);
+
+    function continueFlow() {
+      /*
+        ──────────────────────────────────────────────────────
+        AD INTEGRATION — STEP 6: Monetag Smart Link
+        ──────────────────────────────────────────────────────
+        When the user clicks "Continue", we fire the Monetag
+        smart link in a new tab before navigating to verify.
+        This counts as a click event on Monetag's network.
+
+        Replace MONETAG_URL in .env with your real Monetag
+        smart link, e.g.:
+        https://go.monetag.com/YOUR_CAMPAIGN_ID
+      */
+      window.open(MONETAG, '_blank', 'noopener');
+
+      // Navigate to token generation page
+      setTimeout(() => {
+        window.location.href = '/step/verify/' + SHORT_ID;
+      }, 300);
+    }
+  </script>
+</body>
+</html>

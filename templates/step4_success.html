@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Granted — LinkFlow</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .confetti-wrap {
+      position: fixed; inset: 0; pointer-events: none; z-index: 10;
+      overflow: hidden;
+    }
+    .dot {
+      position: absolute;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      from { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      to   { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="confetti-wrap" id="confetti"></div>
+
+  <div class="page">
+    <div class="card" style="text-align:center">
+
+      <div class="brand" style="justify-content:center">
+        <div class="brand-icon">⚡</div>
+        <div><div class="brand-name">LinkFlow</div></div>
+      </div>
+
+      <!-- Step dots — all done -->
+      <div class="steps" style="justify-content:center">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+      </div>
+
+      <!-- Success icon -->
+      <div class="success-icon">✅</div>
+
+      <h2 style="color:var(--success)">Verification Successful</h2>
+      <p class="sub">🔓 Access Granted — your link is ready.</p>
+
+      <!-- Destination info -->
+      <div style="
+        background:var(--faint);
+        border:1px solid var(--border2);
+        border-radius:var(--radius);
+        padding:1rem;
+        margin:1rem 0;
+        text-align:left;
+      ">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">
+          Destination
+        </div>
+        <div class="mono" style="font-size:0.82rem;color:var(--accent);word-break:break-all">
+          {{ original_url }}
+        </div>
+      </div>
+
+      <!-- Go button -->
+      <a href="{{ original_url }}" class="btn btn-success" id="goBtn" rel="noopener noreferrer">
+        🚀 Go to Destination
+      </a>
+
+      <hr class="divider">
+
+      <div style="font-size:0.78rem;color:var(--muted)">
+        Want to shorten your own links?
+        <a href="/" style="color:var(--accent)">Create one free →</a>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ── Simple confetti burst ──────────────────────────
+    const colors = ['#5b6af7', '#7c3aed', '#10b981', '#f59e0b', '#ef4444'];
+    const wrap   = document.getElementById('confetti');
+
+    for (let i = 0; i < 60; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.style.cssText = `
+        left: ${Math.random() * 100}vw;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        animation-duration: ${1.5 + Math.random() * 2}s;
+        animation-delay: ${Math.random() * 0.8}s;
+        width: ${4 + Math.random() * 8}px;
+        height: ${4 + Math.random() * 8}px;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      `;
+      wrap.appendChild(dot);
+    }
+    setTimeout(() => wrap.remove(), 4000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Access — LinkFlow</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <div class="page">
+    <div class="card">
+
+      <div class="brand">
+        <div class="brand-icon">⚡</div>
+        <div><div class="brand-name">LinkFlow</div></div>
+      </div>
+
+      <!-- Step dots -->
+      <div class="steps">
+        <div class="step-dot done"></div>
+        <div class="step-dot done"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+      </div>
+
+      <h2>Verify & Get Access</h2>
+      <p class="sub">Your token has been generated. Click below to verify and unlock the link.</p>
+
+      <!-- Token display -->
+      <div class="token-box">
+        <div style="font-size:0.72rem;color:var(--muted);margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase">
+          Your Access Token
+        </div>
+        <div class="token-value" id="tokenDisplay">{{ token }}</div>
+      </div>
+
+      <!-- Expiry notice -->
+      <div class="alert alert-info">
+        ⏱ Token expires in <strong>{{ ttl_minutes }} minutes</strong>. Verify now.
+      </div>
+
+      <!-- Error display -->
+      <div id="errBox" class="alert alert-danger" style="display:none"></div>
+
+      <!-- Verify button -->
+      <button class="btn btn-primary" id="verifyBtn" onclick="verifyToken()">
+        <span id="btnText">🔓 Verify & Get Access</span>
+      </button>
+
+      <hr class="divider">
+
+      <!-- Telegram integration info -->
+      <div style="font-size:0.78rem;color:var(--muted);text-align:center">
+        <strong style="color:var(--text)">Using a Telegram bot?</strong><br>
+        Copy your token above and send it to the bot,<br>
+        or click verify to proceed directly.
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const TOKEN    = {{ token | tojson }};
+    const SHORT_ID = {{ short_id | tojson }};
+
+    async function verifyToken() {
+      const btn  = document.getElementById('verifyBtn');
+      const txt  = document.getElementById('btnText');
+      const err  = document.getElementById('errBox');
+      err.style.display = 'none';
+
+      btn.disabled = true;
+      txt.textContent = 'Verifying…';
+
+      try {
+        const res  = await fetch('/verify?token=' + encodeURIComponent(TOKEN));
+        const data = await res.json();
+
+        if (data.valid) {
+          window.location.href = '/step/success/' + SHORT_ID;
+        } else {
+          err.textContent     = '✗ ' + (data.reason || 'Verification failed');
+          err.style.display   = 'block';
+          btn.disabled        = false;
+          txt.textContent     = '🔓 Verify & Get Access';
+        }
+      } catch (e) {
+        err.textContent   = 'Network error. Please try again.';
+        err.style.display = 'block';
+        btn.disabled      = false;
+        txt.textContent   = '🔓 Verify & Get Access';
+      }
+    }
+  </script>
+</body>
+</html>
